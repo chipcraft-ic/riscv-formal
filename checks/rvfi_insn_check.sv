@@ -119,6 +119,13 @@ module rvfi_insn_check (
 				((spec_mem_rmask || spec_mem_wmask) && !`rvformal_addr_valid(spec_mem_addr));
 
 		integer i;
+		
+		reg [7:0] cycle_reg = 0;
+		wire [7:0] cycle = reset ? 0 : cycle_reg;
+
+		always @(posedge clock) begin
+			cycle_reg <= reset ? 1 : cycle_reg + (cycle_reg != 255);
+		end
 
 		always @* begin
 			if (!reset) begin
@@ -126,11 +133,34 @@ module rvfi_insn_check (
 				cover(spec_valid && !trap);
 				cover(check && spec_valid);
 				cover(check && spec_valid && !trap);
+
+                                assume(!rvfi_rollback_valid);
+//				assume(rs1_addr != 0);
+/*
+				if ((cycle_reg== 'd14)|(cycle_reg== 'd15)||(cycle_reg== 'd16)|(cycle_reg== 'd21)|(cycle_reg== 'd25))begin
+					assume(rvfi_valid=='h1);
+					assume(!rvfi_rollback_valid);	
+				end
+				else if((cycle_reg== 'd22)) begin 
+					assume(rvfi_valid=='h3);
+					//assume(!rvfi_rollback_valid);	
+				end
+				else if((cycle_reg== 'd18)) begin 
+					assume(rvfi_valid=='h1);
+					//assume(rvfi_rollback_valid);
+				end
+				
+				else begin
+				assume(rvfi_valid=='h0);
+				assume(!rvfi_rollback_valid);
+				end*/
+			
 			end
 			if (!reset && check) begin
 				assume(spec_valid);
-
+				//assume(!rvfi_rollback_valid);
 				if (!`rvformal_addr_valid(pc_rdata) || !insn_pma_x || mem_access_fault) begin
+					assume(0);
 					assert(trap);
 					assert(rd_addr == 0);
 					assert(rd_wdata == 0);
@@ -140,10 +170,16 @@ module rvfi_insn_check (
 					assert((spec_csr_misa_rmask & csr_misa_rmask) == spec_csr_misa_rmask);
 `endif
 
+
 					if (rs1_addr == 0)
+                                                assume(0);
+
 						assert(rs1_rdata == 0);
 
 					if (rs2_addr == 0)
+
+                                                assume(0);
+
 						assert(rs2_rdata == 0);
 
 					if (!spec_trap) begin

@@ -27,6 +27,7 @@ module rvfi_pc_bwd_check (
 		if (reset) begin
 			expect_pc_valid = 0;
 		end else begin
+		assume(!rvfi_rollback_valid);
 			if (check) begin
 				for (channel_idx = 0; channel_idx < `RISCV_FORMAL_CHANNEL_IDX; channel_idx=channel_idx+1) begin
 					if (rvfi_valid[channel_idx] && rvfi_order[64*channel_idx +: 64] == insn_order+1) begin

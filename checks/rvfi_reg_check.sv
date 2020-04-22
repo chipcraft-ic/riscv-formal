@@ -20,17 +20,23 @@ module rvfi_reg_check (
 	`rvformal_const_rand_reg [4:0] register_index;
 	reg [`RISCV_FORMAL_XLEN-1:0] register_shadow = 0;
 	reg register_written = 0;
-
+	reg [63:0] order;
 	integer channel_idx;
 	always @(posedge clock) begin
 		if (reset) begin
 			register_shadow = 0;
 			register_written = 0;
-		end else begin
+			order=0;
+		end else begin			
+		assume(!rvfi_rollback_valid);			
+		assume(!rvfi_valid[1]);
+
+		
 			if (check) begin
 				for (channel_idx = 0; channel_idx < `RISCV_FORMAL_CHANNEL_IDX; channel_idx=channel_idx+1) begin
-					if (rvfi_valid[channel_idx] && rvfi_order[64*channel_idx +: 64] < insn_order && register_index == rvfi_rd_addr[channel_idx*5 +: 5]) begin
+					if (rvfi_valid[channel_idx] && rvfi_order[64*channel_idx +: 64] < insn_order && register_index == rvfi_rd_addr[channel_idx*5 +: 5]&& rvfi_order[64*channel_idx +: 64] > order [63:0]) begin
 						register_shadow = rvfi_rd_wdata[channel_idx*`RISCV_FORMAL_XLEN +: `RISCV_FORMAL_XLEN];
+						//order=rvfi_order[64*channel_idx +: 64];
 						register_written = 1;
 					end
 				end
@@ -44,9 +50,10 @@ module rvfi_reg_check (
 					assert(register_shadow == rvfi_rs2_rdata[`RISCV_FORMAL_CHANNEL_IDX*`RISCV_FORMAL_XLEN +: `RISCV_FORMAL_XLEN]);
 			end else begin
 				for (channel_idx = 0; channel_idx < `RISCV_FORMAL_NRET; channel_idx=channel_idx+1) begin
-					if (rvfi_valid[channel_idx] && rvfi_order[64*channel_idx +: 64] < insn_order && register_index == rvfi_rd_addr[channel_idx*5 +: 5]) begin
+					if (rvfi_valid[channel_idx] && rvfi_order[64*channel_idx +: 64] < insn_order && register_index == rvfi_rd_addr[channel_idx*5 +: 5] && rvfi_order[64*channel_idx +: 64] > order [63:0] ) begin
 						register_shadow = rvfi_rd_wdata[channel_idx*`RISCV_FORMAL_XLEN +: `RISCV_FORMAL_XLEN];
 						register_written = 1;
+						order=rvfi_order[64*channel_idx +: 64];
 					end
 				end
 			end

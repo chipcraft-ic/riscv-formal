@@ -276,6 +276,8 @@ wire [64 - 1 : 0] csr_minstret_wdata  = rvfi_csr_minstret_wdata  [(_idx)*64 +: 6
 (* keep *) wire [`RISCV_FORMAL_NRET                        - 1 : 0] rvfi_valid;      \
 (* keep *) wire [`RISCV_FORMAL_NRET *                 64   - 1 : 0] rvfi_order;      \
 (* keep *) wire [`RISCV_FORMAL_NRET * `RISCV_FORMAL_ILEN   - 1 : 0] rvfi_insn;       \
+(* keep *) wire [1                        - 1 : 0] rvfi_rollback_valid;      \
+(* keep *) wire [          64   - 1 : 0] rvfi_rollback_order;      \
 (* keep *) wire [`RISCV_FORMAL_NRET                        - 1 : 0] rvfi_trap;       \
 (* keep *) wire [`RISCV_FORMAL_NRET                        - 1 : 0] rvfi_halt;       \
 (* keep *) wire [`RISCV_FORMAL_NRET                        - 1 : 0] rvfi_intr;       \
@@ -307,6 +309,8 @@ wire [64 - 1 : 0] csr_minstret_wdata  = rvfi_csr_minstret_wdata  [(_idx)*64 +: 6
 output [`RISCV_FORMAL_NRET                        - 1 : 0] rvfi_valid,      \
 output [`RISCV_FORMAL_NRET *                 64   - 1 : 0] rvfi_order,      \
 output [`RISCV_FORMAL_NRET * `RISCV_FORMAL_ILEN   - 1 : 0] rvfi_insn,       \
+output [1                        - 1 : 0] rvfi_rollback_valid,      \
+output [1 *                 64   - 1 : 0] rvfi_rollback_order,      \
 output [`RISCV_FORMAL_NRET                        - 1 : 0] rvfi_trap,       \
 output [`RISCV_FORMAL_NRET                        - 1 : 0] rvfi_halt,       \
 output [`RISCV_FORMAL_NRET                        - 1 : 0] rvfi_intr,       \
@@ -338,6 +342,8 @@ output [`RISCV_FORMAL_NRET * `RISCV_FORMAL_XLEN   - 1 : 0] rvfi_mem_wdata   \
 input [`RISCV_FORMAL_NRET                        - 1 : 0] rvfi_valid,      \
 input [`RISCV_FORMAL_NRET *                 64   - 1 : 0] rvfi_order,      \
 input [`RISCV_FORMAL_NRET * `RISCV_FORMAL_ILEN   - 1 : 0] rvfi_insn,       \
+input [1                        - 1 : 0] rvfi_rollback_valid,      \
+input [1 *                 64   - 1 : 0] rvfi_rollback_order,      \
 input [`RISCV_FORMAL_NRET                        - 1 : 0] rvfi_trap,       \
 input [`RISCV_FORMAL_NRET                        - 1 : 0] rvfi_halt,       \
 input [`RISCV_FORMAL_NRET                        - 1 : 0] rvfi_intr,       \
@@ -375,6 +381,8 @@ wire [                 1   - 1 : 0] halt       = rvfi_halt       [(_idx)*(      
 wire [                 1   - 1 : 0] intr       = rvfi_intr       [(_idx)*(                 1  )  +:                  1  ]; \
 wire [                 2   - 1 : 0] mode       = rvfi_mode       [(_idx)*(                 2  )  +:                  2  ]; \
 wire [                 2   - 1 : 0] ixl        = rvfi_ixl        [(_idx)*(                 2  )  +:                  2  ]; \
+wire [                 1   - 1 : 0] rollback_valid      = rvfi_rollback_valid; \
+wire [                64   - 1 : 0] rollback_order      = rvfi_rollback_order      [63:0  ]; \
 wire [                 5   - 1 : 0] rs1_addr   = rvfi_rs1_addr   [(_idx)*(                 5  )  +:                  5  ]; \
 wire [                 5   - 1 : 0] rs2_addr   = rvfi_rs2_addr   [(_idx)*(                 5  )  +:                  5  ]; \
 wire [`RISCV_FORMAL_XLEN   - 1 : 0] rs1_rdata  = rvfi_rs1_rdata  [(_idx)*(`RISCV_FORMAL_XLEN  )  +: `RISCV_FORMAL_XLEN  ]; \
@@ -404,6 +412,8 @@ end endgenerate
 .rvfi_insn      (rvfi_insn     ),  \
 .rvfi_trap      (rvfi_trap     ),  \
 .rvfi_halt      (rvfi_halt     ),  \
+.rvfi_rollback_valid  (rvfi_rollback_valid),  \
+.rvfi_rollback_order  (rvfi_rollback_order),  \
 .rvfi_intr      (rvfi_intr     ),  \
 .rvfi_mode      (rvfi_mode     ),  \
 .rvfi_ixl       (rvfi_ixl      ),  \

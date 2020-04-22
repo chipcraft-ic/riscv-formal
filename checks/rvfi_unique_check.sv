@@ -17,26 +17,38 @@ module rvfi_unique_check (
 	`RVFI_INPUTS
 );
 	`rvformal_const_rand_reg [63:0] insn_order;
-	reg found_other_insn = 0;
-
+	reg found_other_insn = 0;	
 	integer channel_idx;
+	reg trig_valid;
+
 	always @(posedge clock) begin
 		if (reset) begin
 			found_other_insn = 0;
+			trig_valid = 0;
 		end else begin
 			for (channel_idx = 0; channel_idx < `RISCV_FORMAL_NRET; channel_idx=channel_idx+1) begin
-				if (rvfi_valid[channel_idx] && rvfi_order[64*channel_idx +: 64] == insn_order &&
-						(!trig || channel_idx != `RISCV_FORMAL_CHANNEL_IDX)) begin
+				if (rvfi_valid[channel_idx] && rvfi_order[64*channel_idx +: 64] == insn_order && (!trig || channel_idx != `RISCV_FORMAL_CHANNEL_IDX)) begin
 					found_other_insn = 1;
 				end
 			end
 			if (trig) begin
 				assume(rvfi_valid[`RISCV_FORMAL_CHANNEL_IDX]);
 				assume(insn_order == rvfi_order[64*`RISCV_FORMAL_CHANNEL_IDX +: 64]);
+				trig_valid = 1;
 			end
-			if (check) begin
+`ifdef RISCV_ROLLBACK
+			if (rvfi_rollback_valid && insn_order >= rvfi_rollback_order[63:0]) begin
+				 //if (trig_valid) begin
+				 	//assert(!found_other_insn);
+				 //end
+				trig_valid = 0;
+				found_other_insn = 0;
+			end
+`endif	
+			if (check && trig_valid) begin
 				assert(!found_other_insn);
 			end
+		
 		end
 	end
 endmodule
